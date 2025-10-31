@@ -61,39 +61,70 @@ conf.header = {
   "                                       ",
 }
 
+-- choose emoji if environment supports UTF-8, otherwise fallback to ASCII
+local function emojis_supported()
+  local enc = vim.o.encoding or vim.o.termencoding or vim.env.LANG
+  if enc then
+    enc = string.upper(tostring(enc))
+    return string.find(enc, "UTF") ~= nil
+  end
+  return true
+end
+
+local icons = {}
+if emojis_supported() then
+  icons = {
+    find = "🔎  ",
+    recent = "🕘  ",
+    grep = "🔍  ",
+    config = "⚙️  ",
+    new = "📄  ",
+    quit = "🚪  ",
+  }
+else
+  icons = {
+    find = "[Find] ",
+    recent = "[Recent] ",
+    grep = "[Grep] ",
+    config = "[Cfg]  ",
+    new = "[New]  ",
+    quit = "[Quit] ",
+  }
+end
+
 conf.center = {
   {
-    icon = "󰈞  ",
+    icon = icons.find,
     desc = "Find  File                              ",
-    action = "FzfLua files",
+    action = "Telescope find_files",
     key = "<Leader> f f",
   },
   {
-    icon = "󰈢  ",
+    icon = icons.recent,
     desc = "Recently opened files                   ",
-    action = "FzfLua oldfiles",
+    action = "Telescope oldfiles",
     key = "<Leader> f r",
   },
   {
-    icon = "󰈬  ",
+    icon = icons.grep,
     desc = "Project grep                            ",
-    action = "FzfLua live_grep",
+    action = "Telescope live_grep",
     key = "<Leader> f g",
   },
   {
-    icon = "  ",
+    icon = icons.config,
     desc = "Open Nvim config                        ",
     action = "tabnew $MYVIMRC | tcd %:p:h",
     key = "<Leader> e v",
   },
   {
-    icon = "  ",
+    icon = icons.new,
     desc = "New file                                ",
     action = "enew",
     key = "e",
   },
   {
-    icon = "󰗼  ",
+    icon = icons.quit,
     desc = "Quit Nvim                               ",
     -- desc = "Quit Nvim                               ",
     action = "qa",

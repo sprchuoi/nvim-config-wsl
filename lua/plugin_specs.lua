@@ -116,13 +116,7 @@ local plugin_specs = {
       "nvim-telescope/telescope-symbols.nvim",
     },
   },
-  {
-    "ibhagwan/fzf-lua",
-    config = function()
-      require("config.fzf-lua")
-    end,
-    event = "VeryLazy",
-  },
+  -- Replaced with Telescope for fuzzy finding
   {
     "MeanderingProgrammer/render-markdown.nvim",
     main = "render-markdown",
@@ -351,7 +345,7 @@ local plugin_specs = {
       "nvim-lua/plenary.nvim", -- required
       "sindrets/diffview.nvim", -- optional - Diff integration
       -- Only one of these is needed.
-      "ibhagwan/fzf-lua", -- optional
+  -- optional fuzzy-finder removed in favor of Telescope
     },
     event = "User InGitRepo",
   },
