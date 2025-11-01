@@ -3,11 +3,11 @@ set -exu
 set -o pipefail
 
 # Whether python3 has been installed on the system
-PYTHON_INSTALLED=true
+PYTHON_INSTALLED=false 
 
 # If Python has been installed, then we need to know whether Python is provided
 # by the system, or you have already installed Python under your HOME.
-SYSTEM_PYTHON=false
+SYSTEM_PYTHON=true
 
 # If SYSTEM_PYTHON is false, we need to decide whether to install
 # Anaconda (INSTALL_ANACONDA=true) or Miniconda (INSTALL_ANACONDA=false)
@@ -68,10 +68,10 @@ fi
 
 # Install some Python packages used by Nvim plugins.
 echo "Installing Python packages"
-declare -a PY_PACKAGES=("pynvim" 'python-lsp-server[all]' "vim-vint" "python-lsp-isort" "pylsp-mypy" "python-lsp-black")
+declare -a PY_PACKAGES=("pynvim" 'python-lsp-server[all]' "vim-vint" "python-lsp-isort" "pylsp-mypy" "python-lsp-black" "ruff")
 
 if [[ "$SYSTEM_PYTHON" = true ]]; then
-    echo "Using system Python to install $(PY_PACKAGES)"
+    echo "Using system Python to install ${PY_PACKAGES[@]}"
 
     # If we use system Python, we need to install these Python packages under
     # user HOME, since we do not have permissions to install them under system
@@ -80,7 +80,7 @@ if [[ "$SYSTEM_PYTHON" = true ]]; then
         pip install --user "$p"
     done
 else
-    echo "Using custom Python to install $(PY_PACKAGES)"
+    echo "Using custom Python to install ${PY_PACKAGES[@]}"
     for p in "${PY_PACKAGES[@]}"; do
         "$CONDA_DIR/bin/pip" install "$p"
     done
@@ -120,6 +120,12 @@ fi
 
 # Install bash-language-server
 "$NODE_DIR/bin/npm" install -g bash-language-server
+
+# Install yaml-language-server
+"$NODE_DIR/bin/npm" install -g yaml-language-server
+
+# Install pyright
+"$NODE_DIR/bin/npm" install -g pyright
 
 #######################################################################
 #                         lua-language-server                         #

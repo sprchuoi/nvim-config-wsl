@@ -234,3 +234,26 @@ keymap.set("n", "<Esc>", function()
 end, {
   desc = "close floating win",
 })
+
+-- Quick search with Telescope
+keymap.set("n", "<C-p>", "<cmd>Telescope find_files<cr>", { desc = "quick find files" })
+keymap.set("n", "<C-f>", "<cmd>Telescope live_grep<cr>", { desc = "quick search in folder" })
+keymap.set("n", "<leader>fw", "<cmd>Telescope grep_string<cr>", { desc = "search word under cursor" })
+keymap.set("n", "<leader>fs", "<cmd>Telescope current_buffer_fuzzy_find<cr>", { desc = "search in current buffer" })
+
+-- Quick replace (like Ctrl+Shift+H in VSCode)
+keymap.set("n", "<C-S-h>", ":%s///g<Left><Left><Left>", { desc = "replace in file" })
+keymap.set("n", "<leader>rr", ":%s///g<Left><Left><Left>", { desc = "replace in file" })
+keymap.set("x", "<leader>rr", ":s///g<Left><Left><Left>", { desc = "replace in selection" })
+
+-- Replace word under cursor in entire file
+keymap.set("n", "<leader>rw", function()
+  local word = vim.fn.expand("<cword>")
+  vim.cmd(":%s/" .. word .. "//g<Left><Left>")
+end, { desc = "replace word under cursor" })
+
+-- Replace word under cursor in visual selection
+keymap.set("x", "<leader>rw", function()
+  local word = vim.fn.expand("<cword>")
+  vim.cmd(":'<,'>s/" .. word .. "//g<Left><Left>")
+end, { desc = "replace word in selection" })
