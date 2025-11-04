@@ -30,9 +30,12 @@ return {
     python = {
       analysis = {
         autoSearchPaths = true,
-        diagnosticMode = "workspace",
+        diagnosticMode = "workspace",        -- Scan entire workspace, not just open files
         typeCheckingMode = "standard",
         useLibraryCodeForTypes = true,
+        -- Automatically detect workspace root and scan all Python files
+        autoImportCompletions = true,
+        indexing = true,                     -- Enable workspace indexing
         -- we can this setting below to redefine some diagnostics
         diagnosticSeverityOverrides = {
           deprecateTypingAliases = false,
@@ -48,4 +51,17 @@ return {
     },
   },
   capabilities = new_capability,
+  root_dir = function(fname)
+    -- Find Python workspace root by looking for these markers
+    local markers = {
+      "pyproject.toml",
+      "setup.py",
+      "setup.cfg",
+      "requirements.txt",
+      "Pipfile",
+      "pyrightconfig.json",
+      ".git",
+    }
+    return vim.fs.root(fname, markers)
+  end,
 }

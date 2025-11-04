@@ -5,4 +5,15 @@ return {
       organizeImports = true,
     },
   },
+  root_dir = function(fname)
+    -- Find Python workspace root for Ruff
+    local markers = {
+      "pyproject.toml",
+      "ruff.toml",
+      ".ruff.toml",
+      "setup.py",
+      ".git",
+    }
+    return vim.fs.root(fname, markers)
+  end,
 }
