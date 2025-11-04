@@ -1,4 +1,4 @@
--- settings for lua-language-server can be found on https://luals.github.io/wiki/settings/
+-- settings for lua-language-server can be found on https://lulas.github.io/wiki/settings/
 return {
   settings = {
     Lua = {
@@ -27,18 +27,4 @@ return {
     local markers = { ".git", ".luarc.json", ".luarc.jsonc", ".stylua.toml", "stylua.toml" }
     return vim.fs.root(fname, markers)
   end,
-}
- lua-language-server can be found on https://luals.github.io/wiki/settings/
-return {
-  settings = {
-    Lua = {
-      runtime = {
-        -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
-        version = "LuaJIT",
-      },
-      hint = {
-        enable = true,
-      },
-    },
-  },
 }
