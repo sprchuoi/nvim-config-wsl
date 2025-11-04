@@ -60,6 +60,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
       }
     end, { desc = "go to definition" })
     map("n", "<C-]>", vim.lsp.buf.definition)
+    map("n", "gD", vim.lsp.buf.declaration, { desc = "go to declaration" })
+    map("n", "<F2>", vim.lsp.buf.type_definition, { desc = "go to type definition" })
+    map("n", "gi", vim.lsp.buf.implementation, { desc = "go to implementation" })
+    map("n", "gr", vim.lsp.buf.references, { desc = "show references" })
     map("n", "K", function()
       vim.lsp.buf.hover {
         border = "single",

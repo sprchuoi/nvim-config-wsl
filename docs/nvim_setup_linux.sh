@@ -3,7 +3,7 @@ set -exu
 set -o pipefail
 
 # Whether python3 has been installed on the system
-PYTHON_INSTALLED=false 
+PYTHON_INSTALLED=true
 
 # If Python has been installed, then we need to know whether Python is provided
 # by the system, or you have already installed Python under your HOME.
@@ -11,7 +11,7 @@ SYSTEM_PYTHON=true
 
 # If SYSTEM_PYTHON is false, we need to decide whether to install
 # Anaconda (INSTALL_ANACONDA=true) or Miniconda (INSTALL_ANACONDA=false)
-INSTALL_ANACONDA=false
+INSTALL_ANACONDA=true
 
 # Whether to add the path of the installed executables to system PATH
 ADD_TO_SYSTEM_PATH=true
@@ -68,10 +68,10 @@ fi
 
 # Install some Python packages used by Nvim plugins.
 echo "Installing Python packages"
-declare -a PY_PACKAGES=("pynvim" 'python-lsp-server[all]' "vim-vint" "python-lsp-isort" "pylsp-mypy" "python-lsp-black" "ruff")
+declare -a PY_PACKAGES=("pynvim" 'python-lsp-server[all]' "vim-vint" "python-lsp-isort" "pylsp-mypy" "python-lsp-black")
 
 if [[ "$SYSTEM_PYTHON" = true ]]; then
-    echo "Using system Python to install ${PY_PACKAGES[@]}"
+    echo "Using system Python to install $(PY_PACKAGES)"
 
     # If we use system Python, we need to install these Python packages under
     # user HOME, since we do not have permissions to install them under system
@@ -80,7 +80,7 @@ if [[ "$SYSTEM_PYTHON" = true ]]; then
         pip install --user "$p"
     done
 else
-    echo "Using custom Python to install ${PY_PACKAGES[@]}"
+    echo "Using custom Python to install $(PY_PACKAGES)"
     for p in "${PY_PACKAGES[@]}"; do
         "$CONDA_DIR/bin/pip" install "$p"
     done
@@ -115,17 +115,33 @@ else
     NODE_DIR="$(realpath $(dirname $(which node))/..)"
 fi
 
+# Helper to install npm global packages and retry with sudo if needed
+NPM_BIN=""
+npm_install_global() {
+    pkg="$1"
+    echo "Installing npm package: $pkg"
+    if [[ -n "$NPM_BIN" ]] && "$NPM_BIN" install -g "$pkg"; then
+        return 0
+    fi
+    echo "Global install failed, retrying with sudo..."
+    if command -v sudo >/dev/null 2>&1; then
+        # if NPM_BIN is empty, try system npm
+        if [[ -z "$NPM_BIN" ]]; then
+            sudo npm install -g --unsafe-perm "$pkg"
+        else
+            sudo "$NPM_BIN" install -g --unsafe-perm "$pkg"
+        fi
+    else
+        echo "sudo not available; please run this script as root or install $pkg manually."
+        return 1
+    fi
+}
+
 # Install vim-language-server
-"$NODE_DIR/bin/npm" install -g vim-language-server
+npm_install_global vim-language-server
 
 # Install bash-language-server
-"$NODE_DIR/bin/npm" install -g bash-language-server
-
-# Install yaml-language-server
-"$NODE_DIR/bin/npm" install -g yaml-language-server
-
-# Install pyright
-"$NODE_DIR/bin/npm" install -g pyright
+npm_install_global bash-language-server
 
 #######################################################################
 #                         lua-language-server                         #
@@ -198,36 +214,69 @@ fi
 #                            Ctags install                            #
 #######################################################################
 CTAGS_SRC_DIR=$HOME/packages/ctags
-CTAGS_DIR=$HOME/tools/ctags
-CTAGS_LINK="https://github.com/universal-ctags/ctags.git"
-if [[ ! -f "$CTAGS_DIR/bin/ctags" ]]; then
-    echo "Install ctags"
-
-    if [[ ! -d $CTAGS_SRC_DIR ]]; then
-        mkdir -p "$CTAGS_SRC_DIR"
-    else
-        # Prevent an incomplete download.
-        rm -rf "$CTAGS_SRC_DIR"
+NODE_DIR=$HOME/tools/nodejs
+NODE_SRC_NAME=$HOME/packages/nodejs.tar.gz
+# prefer installing Node via nvm (per-user) to avoid sudo
+if [[ -z "$(command -v node)" ]]; then
+    echo "Node.js not found. Attempting per-user install via nvm..."
+    # try to source existing nvm
+    export NVM_DIR="$HOME/.nvm"
+    if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+        # shellcheck disable=SC1090
+        . "$NVM_DIR/nvm.sh"
     fi
 
-    git clone --depth=1 "$CTAGS_LINK" "$CTAGS_SRC_DIR" && cd "$CTAGS_SRC_DIR"
-    ./autogen.sh && ./configure --prefix="$CTAGS_DIR"
-    make -j && make install
+    if ! command -v nvm >/dev/null 2>&1; then
+        echo "nvm not found; installing nvm..."
+        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        # shellcheck disable=SC1090
+        if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+            . "$NVM_DIR/nvm.sh"
+        fi
+    fi
 
-    if [[ "$ADD_TO_SYSTEM_PATH" = true ]] && [[ "$USE_BASH_SHELL" = true ]]; then
-        echo "export PATH=\"$CTAGS_DIR/bin:\$PATH\"" >> "$HOME/.bash_profile"
+    if command -v nvm >/dev/null 2>&1; then
+        nvm install --lts
+        nvm use --lts
+        NPM_BIN="$(command -v npm)"
+        NODE_DIR="$(dirname $(dirname $(command -v node)))"
+    else
+        echo "nvm install failed or not available; falling back to bundled Node tarball install"
+        NODE_LINK="https://mirrors.ustc.edu.cn/node/v15.0.0/node-v15.0.0-linux-x64.tar.xz"
+        if [[ ! -f $NODE_SRC_NAME ]]; then
+            echo "Downloading Node.js and renaming"
+            wget $NODE_LINK -O "$NODE_SRC_NAME"
+        fi
+        if [[ ! -d "$NODE_DIR" ]]; then
+            echo "Creating Node.js directory under tools directory"
+            mkdir -p "$NODE_DIR"
+            echo "Extracting to $HOME/tools/nodejs directory"
+            tar xvf "$NODE_SRC_NAME" -C "$NODE_DIR" --strip-components 1
+        fi
+        if [[ "$ADD_TO_SYSTEM_PATH" = true ]] && [[ "$USE_BASH_SHELL" = true ]]; then
+            echo "export PATH=\"$NODE_DIR/bin:\$PATH\"" >> "$HOME/.bash_profile"
+        fi
+        NPM_BIN="$NODE_DIR/bin/npm"
     fi
 else
-    echo "ctags is already installed. Skip installing it."
+    echo "Node.js is already installed. Skip installing it."
+    NPM_BIN="$(command -v npm)"
+    NODE_DIR="$(realpath $(dirname $(which node))/..)"
 fi
 
-#######################################################################
-#                                Nvim install                         #
-#######################################################################
+# Install vim-language-server
+sudo npm install -g vim-language-server
+
+# Install bash-language-server
+sudo npm install -g bash-language-server
+
+# Neovim installation defaults (ensure variables are always set)
 NVIM_DIR=$HOME/tools/nvim
 NVIM_SRC_NAME=$HOME/packages/nvim-linux64.tar.gz
 NVIM_CONFIG_DIR=$HOME/.config/nvim
 NVIM_LINK="https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz"
+
 if [[ ! -f "$NVIM_DIR/bin/nvim" ]]; then
     echo "Installing Nvim"
     echo "Creating nvim directory under tools directory"
