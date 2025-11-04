@@ -190,6 +190,109 @@ else
 fi
 
 #######################################################################
+#                    Install clangd (C/C++ Language Server)           #
+#######################################################################
+echo ""
+print_info "Checking clangd..."
+
+if command -v clangd &> /dev/null; then
+    CLANGD_VERSION=$(clangd --version | head -n1)
+    print_success "clangd is already installed: $CLANGD_VERSION"
+else
+    print_info "Installing clangd..."
+    sudo apt update
+    sudo apt install -y clangd
+    print_success "clangd installed"
+fi
+
+# Optional: Install build-essential for C/C++ compilation
+if command -v gcc &> /dev/null && command -v g++ &> /dev/null; then
+    print_success "gcc/g++ compilers are already installed"
+else
+    print_warning "gcc/g++ not found. Installing build-essential..."
+    sudo apt update
+    sudo apt install -y build-essential
+    print_success "build-essential (gcc, g++, make, etc.) installed"
+fi
+
+#######################################################################
+#                    Install Nerd Font for Icons                      #
+#######################################################################
+echo ""
+print_info "Checking Nerd Font installation..."
+
+# Check if running in WSL
+if grep -qi microsoft /proc/version; then
+    WIN_FONTS_LOCAL_DIR="$(wslpath "$(cmd.exe /c 'echo %LOCALAPPDATA%\Microsoft\Windows\Fonts' 2>/dev/null | tr -d '\r')")"
+    
+    # Check if any Nerd Font is installed
+    NERD_FONT_INSTALLED=false
+    if [ -d "$WIN_FONTS_LOCAL_DIR" ]; then
+        if find "$WIN_FONTS_LOCAL_DIR" -iname "*nerd*" -o -iname "*NF*" | grep -q .; then
+            NERD_FONT_INSTALLED=true
+        fi
+    fi
+    
+    if [ "$NERD_FONT_INSTALLED" = true ]; then
+        print_success "Nerd Font appears to be installed"
+    else
+        print_warning "No Nerd Font detected. Nvim icons may not display correctly."
+        echo ""
+        read -p "Would you like to install JetBrainsMono Nerd Font now? (y/n) [y]: " install_font
+        install_font=${install_font:-y}
+        
+        if [[ "$install_font" =~ ^[Yy]$ ]]; then
+            # Check for unzip
+            if ! command -v unzip &> /dev/null; then
+                print_info "Installing unzip..."
+                sudo apt update && sudo apt install -y unzip
+            fi
+            
+            FONT_NAME="JetBrainsMono"
+            FONT_VERSION="v3.1.1"
+            DOWNLOAD_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/${FONT_VERSION}/${FONT_NAME}.zip"
+            TEMP_DIR="/tmp/nerdfonts-install"
+            FONT_FILE="${TEMP_DIR}/${FONT_NAME}.zip"
+            EXTRACT_DIR="${TEMP_DIR}/${FONT_NAME}"
+            
+            mkdir -p "$TEMP_DIR" "$EXTRACT_DIR"
+            
+            print_info "Downloading ${FONT_NAME} Nerd Font..."
+            if command -v wget &> /dev/null; then
+                wget -q --show-progress -O "$FONT_FILE" "$DOWNLOAD_URL" 2>&1 || print_error "Download failed"
+            elif command -v curl &> /dev/null; then
+                curl -L --progress-bar -o "$FONT_FILE" "$DOWNLOAD_URL" || print_error "Download failed"
+            fi
+            
+            if [ -f "$FONT_FILE" ]; then
+                print_info "Extracting fonts..."
+                unzip -q -o "$FONT_FILE" -d "$EXTRACT_DIR"
+                
+                print_info "Installing fonts to Windows..."
+                INSTALLED=0
+                while IFS= read -r font_file; do
+                    font_basename=$(basename "$font_file")
+                    cp "$font_file" "$WIN_FONTS_LOCAL_DIR/" 2>/dev/null && ((INSTALLED++))
+                done < <(find "$EXTRACT_DIR" -type f \( -iname "*.ttf" -o -iname "*.otf" \) ! -iname "*Windows Compatible*")
+                
+                rm -rf "$TEMP_DIR"
+                
+                if [ $INSTALLED -gt 0 ]; then
+                    print_success "${FONT_NAME} Nerd Font installed ($INSTALLED files)"
+                    print_warning "Remember to configure Windows Terminal to use '${FONT_NAME} Nerd Font'"
+                else
+                    print_error "Font installation failed"
+                fi
+            fi
+        else
+            print_info "Skipping font installation. Run 'bash docs/install_nerd_font.sh' later to install."
+        fi
+    fi
+else
+    print_warning "Not running in WSL, skipping font installation"
+fi
+
+#######################################################################
 #                    Update PATH if needed                             #
 #######################################################################
 echo ""
@@ -249,6 +352,7 @@ check_command "pyright-langserver" || check_command "pyright"
 check_command "ruff"
 check_command "vim-language-server"
 check_command "bash-language-server"
+check_command "clangd"
 
 #######################################################################
 #                    Install/Update Neovim Plugins                     #

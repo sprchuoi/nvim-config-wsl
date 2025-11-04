@@ -1,4 +1,19 @@
-local diagnostic = vim.diagnostic
+loc-- global config for diagnostic
+diagnostic.config {
+  underline = false,
+  virtual_text = false,
+  virtual_lines = false,
+  signs = {
+    text = {
+      -- Use Nerd Font icons if available, otherwise fallback to simple text
+      -- If icons don't display correctly, install a Nerd Font (see docs/fix_missing_icons.md)
+      [diagnostic.severity.ERROR] = vim.g.have_nerd_font ~= false and "" or "E",
+      [diagnostic.severity.WARN] = vim.g.have_nerd_font ~= false and "" or "W",
+      [diagnostic.severity.INFO] = vim.g.have_nerd_font ~= false and "" or "I",
+      [diagnostic.severity.HINT] = vim.g.have_nerd_font ~= false and "" or "H",
+    },
+  },
+  severity_sort = true,= vim.diagnostic
 local api = vim.api
 
 -- global config for diagnostic
