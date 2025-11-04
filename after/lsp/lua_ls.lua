@@ -15,10 +15,15 @@ return {
         library = {
           vim.env.VIMRUNTIME,
         },
+        -- Enable workspace diagnostics
+        maxPreload = 10000,
+        preloadFileSize = 10000,
       },
       diagnostics = {
         -- Get the language server to recognize the `vim` global
         globals = { "vim" },
+        -- Enable workspace diagnostics (scan all files)
+        workspaceDelay = 500,
       },
     },
   },

@@ -140,6 +140,19 @@ local enabled_lsp_servers = {
 
 for server_name, lsp_executable in pairs(enabled_lsp_servers) do
   if utils.executable(lsp_executable) then
+    -- Try to load server-specific configuration
+    local server_config_ok, server_config = pcall(require, "lsp." .. server_name)
+    
+    if server_config_ok and type(server_config) == "table" then
+      -- Merge server-specific config with default capabilities
+      local config = vim.deepcopy(server_config)
+      if not config.capabilities then
+        config.capabilities = capabilities
+      end
+      
+      vim.lsp.config(server_name, config)
+    end
+    
     vim.lsp.enable(server_name)
   else
     local msg = string.format(

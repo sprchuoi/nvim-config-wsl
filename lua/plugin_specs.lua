@@ -29,6 +29,13 @@ local plugin_specs = {
   { "hrsh7th/cmp-cmdline", lazy = true },
   { "quangnguyen30192/cmp-nvim-ultisnips", lazy = true },
   {
+    "zbirenbaum/copilot-cmp",
+    dependencies = { "zbirenbaum/copilot.lua" },
+    config = function()
+      require("copilot_cmp").setup()
+    end,
+  },
+  {
     "hrsh7th/nvim-cmp",
     name = "nvim-cmp",
     event = "VeryLazy",
@@ -552,22 +559,32 @@ local plugin_specs = {
     },
   },
   {
-    "CopilotC-Nvim/CopilotChat.nvim",
-    dependencies = {
-      { "zbirenbaum/copilot.lua" }, -- or github/copilot.vim
-    },
-    opts = {
-      debug = true, -- Enable debugging
-      -- See Configuration section for rest
-    },
-    cmd = { "CopilotChat" },
-  },
-  {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
+    event = "InsertEnter",
     config = function()
-      require("copilot").setup {}
+      require("config.copilot")
     end,
+  },
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    dependencies = {
+      { "zbirenbaum/copilot.lua" },
+    },
+    opts = {
+      debug = false,
+      show_help = "yes",
+      prompts = {
+        Explain = "Explain how this code works.",
+        Review = "Review this code and provide concise suggestions.",
+        Tests = "Briefly explain how the selected code works, then generate unit tests.",
+        Refactor = "Refactor this code to improve clarity and readability.",
+      },
+    },
+    build = function()
+      vim.notify("Please update the remote plugins by running ':UpdateRemotePlugins', then restart Neovim.")
+    end,
+    event = "VeryLazy",
   },
   {
     "smjonas/live-command.nvim",

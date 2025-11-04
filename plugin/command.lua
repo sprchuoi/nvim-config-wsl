@@ -57,3 +57,61 @@ end, {
   desc = "Format JSON string",
   range = "%",
 })
+
+-- LSP workspace diagnostic commands
+vim.api.nvim_create_user_command("LspWorkspaceDiag", function()
+  -- Trigger workspace diagnostics for all attached LSP clients
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  for _, client in ipairs(clients) do
+    if client.supports_method("textDocument/diagnostic") then
+      vim.notify(
+        string.format("Triggering workspace diagnostics for %s", client.name),
+        vim.log.levels.INFO,
+        { title = "LSP" }
+      )
+      -- Request workspace diagnostics
+      client.request("workspace/diagnostic", {}, function() end, 0)
+    end
+  end
+end, {
+  desc = "Trigger LSP workspace diagnostics",
+})
+
+vim.api.nvim_create_user_command("LspInfo", function()
+  -- Show detailed LSP information
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  
+  if #clients == 0 then
+    vim.notify("No LSP clients attached to current buffer", vim.log.levels.WARN, { title = "LSP" })
+    return
+  end
+  
+  for _, client in ipairs(clients) do
+    local info = {
+      string.format("LSP Client: %s", client.name),
+      string.format("Root dir: %s", client.root_dir or "N/A"),
+      string.format("Workspace folders: %s", vim.inspect(client.workspace_folders or {})),
+      string.format("Supports workspace diagnostics: %s", client.supports_method("textDocument/diagnostic")),
+    }
+    
+    vim.notify(table.concat(info, "\n"), vim.log.levels.INFO, { title = "LSP Info" })
+  end
+end, {
+  desc = "Show LSP client information and workspace folders",
+})
+
+vim.api.nvim_create_user_command("LspRestart", function()
+  -- Restart all LSP clients
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  
+  for _, client in ipairs(clients) do
+    vim.notify(string.format("Restarting %s", client.name), vim.log.levels.INFO, { title = "LSP" })
+    vim.cmd("LspStop " .. client.name)
+  end
+  
+  vim.defer_fn(function()
+    vim.cmd("edit") -- Reopen buffer to trigger LSP attach
+  end, 500)
+end, {
+  desc = "Restart all LSP clients for current buffer",
+})

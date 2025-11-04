@@ -11,6 +11,14 @@ require("cmp_cmdline")
 
 local MiniIcons = require("mini.icons")
 
+local has_words_before = function()
+  if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
+    return false
+  end
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
+end
+
 cmp.setup {
   snippet = {
     expand = function(args)
@@ -19,13 +27,13 @@ cmp.setup {
     end,
   },
   mapping = cmp.mapping.preset.insert {
-    ["<Tab>"] = function(fallback)
-      if cmp.visible() then
-        cmp.select_next_item()
+    ["<Tab>"] = vim.schedule_wrap(function(fallback)
+      if cmp.visible() and has_words_before() then
+        cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
       else
         fallback()
       end
-    end,
+    end),
     ["<S-Tab>"] = function(fallback)
       if cmp.visible() then
         cmp.select_prev_item()
@@ -40,10 +48,11 @@ cmp.setup {
     ["<C-f>"] = cmp.mapping.scroll_docs(4),
   },
   sources = {
-    { name = "nvim_lsp" }, -- For nvim-lsp
-    { name = "ultisnips" }, -- For ultisnips user.
-    { name = "path" }, -- for path completion
-    { name = "buffer", keyword_length = 2 }, -- for buffer word completion
+    { name = "copilot", group_index = 2 },
+    { name = "nvim_lsp", group_index = 2 },
+    { name = "ultisnips", group_index = 2 },
+    { name = "path", group_index = 2 },
+    { name = "buffer", keyword_length = 2, group_index = 2 },
   },
   completion = {
     keyword_length = 1,
@@ -54,12 +63,34 @@ cmp.setup {
   },
   -- solution taken from https://github.com/echasnovski/mini.nvim/issues/1007#issuecomment-2258929830
   formatting = {
-    format = function(_, vim_item)
+    format = function(entry, vim_item)
       local icon, hl = MiniIcons.get("lsp", vim_item.kind)
+      
+      -- Add copilot icon
+      if entry.source.name == "copilot" then
+        icon = ""
+        hl = "CmpItemKindCopilot"
+      end
+      
       vim_item.kind = icon .. " " .. vim_item.kind
       vim_item.kind_hl_group = hl
       return vim_item
     end,
+  },
+  sorting = {
+    priority_weight = 2,
+    comparators = {
+      require("copilot_cmp.comparators").prioritize,
+      cmp.config.compare.offset,
+      cmp.config.compare.exact,
+      cmp.config.compare.score,
+      cmp.config.compare.recently_used,
+      cmp.config.compare.locality,
+      cmp.config.compare.kind,
+      cmp.config.compare.sort_text,
+      cmp.config.compare.length,
+      cmp.config.compare.order,
+    },
   },
 }
 
@@ -108,4 +139,6 @@ vim.cmd([[
   highlight! CmpItemKindKeyword guibg=NONE guifg=#D4D4D4
   highlight! CmpItemKindProperty guibg=NONE guifg=#D4D4D4
   highlight! CmpItemKindUnit guibg=NONE guifg=#D4D4D4
+  " Copilot
+  highlight! CmpItemKindCopilot guibg=NONE guifg=#6CC644
 ]])
