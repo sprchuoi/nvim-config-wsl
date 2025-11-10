@@ -48,10 +48,10 @@ nvim_tree.setup {
     enable = false,
     show_on_dirs = false,
     icons = {
-      hint = "",
-      info = "",
-      warning = "",
-      error = "",
+      hint = "💡",
+      info = "ℹ",
+      warning = "⚠",
+      error = "✖",
     },
   },
   filters = {
@@ -78,7 +78,7 @@ nvim_tree.setup {
         enable = true,
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
         exclude = {
-          filetype = { "notify", "qf", "diff", "fugitive", "fugitiveblame" },
+          filetype = { "notify", "packer", "qf", "diff", "fugitive", "fugitiveblame" },
           buftype = { "nofile", "terminal", "help" },
         },
       },
@@ -103,6 +103,7 @@ nvim_tree.setup {
 }
 
 keymap.set("n", "<space>s", require("nvim-tree.api").tree.toggle, {
+  noremap = true,
   silent = true,
   desc = "toggle nvim-tree",
 })

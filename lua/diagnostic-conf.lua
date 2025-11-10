@@ -8,12 +8,11 @@ diagnostic.config {
   virtual_lines = false,
   signs = {
     text = {
-      -- Use Nerd Font icons if available, otherwise fallback to simple text
-      -- If icons don't display correctly, install a Nerd Font (see docs/fix_missing_icons.md)
-      [diagnostic.severity.ERROR] = vim.g.have_nerd_font ~= false and "" or "E",
-      [diagnostic.severity.WARN] = vim.g.have_nerd_font ~= false and "" or "W",
-      [diagnostic.severity.INFO] = vim.g.have_nerd_font ~= false and "" or "I",
-      [diagnostic.severity.HINT] = vim.g.have_nerd_font ~= false and "" or "H",
+      -- Standard Unicode icons that work without Nerd Fonts
+      [diagnostic.severity.ERROR] = "✖",  -- Cross mark
+      [diagnostic.severity.WARN] = "⚠",   -- Warning sign
+      [diagnostic.severity.INFO] = "ℹ",   -- Information
+      [diagnostic.severity.HINT] = "💡", -- Light bulb
     },
   },
   severity_sort = true,
