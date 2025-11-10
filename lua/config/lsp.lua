@@ -59,9 +59,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end,
       }
     end, { desc = "go to definition" })
-    map("n", "<C-]>", vim.lsp.buf.definition)
+    map("n", "<C-]>", vim.lsp.buf.definition, { desc = "go to definition (direct)" })
     map("n", "gD", vim.lsp.buf.declaration, { desc = "go to declaration" })
-    map("n", "<F2>", vim.lsp.buf.type_definition, { desc = "go to type definition" })
+    -- F2 for type definition (only works with some LSP servers like TypeScript, not Python)
+    if client.server_capabilities.typeDefinitionProvider then
+      map("n", "<F2>", vim.lsp.buf.type_definition, { desc = "go to type definition" })
+    end
     map("n", "gi", vim.lsp.buf.implementation, { desc = "go to implementation" })
     map("n", "gr", vim.lsp.buf.references, { desc = "show references" })
     map("n", "K", function()
