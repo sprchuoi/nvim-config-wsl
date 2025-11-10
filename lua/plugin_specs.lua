@@ -107,6 +107,38 @@ local plugin_specs = {
     end,
   },
 
+  -- Smooth cursor animations with trailing effect
+  {
+    "sphalerite/smear-cursor.nvim",
+    event = "VeryLazy",
+    opts = {
+      -- Cursor color. Defaults to Cursor GUI color if not set
+      cursor_color = "#d3cdc3",
+      
+      -- Background color. Defaults to Normal GUI background color if not set
+      normal_bg = "#282828",
+      
+      -- Smear cursor when switching buffers or windows
+      smear_between_buffers = true,
+      
+      -- Smear cursor when moving in insert mode
+      smear_between_neighbor_lines = true,
+      
+      -- Use floating windows to display smears outside buffers
+      use_floating_windows = true,
+      
+      -- Set to `true` if your font supports legacy computing symbols (block unicode symbols)
+      legacy_computing_symbols_support = false,
+      
+      -- Smear cursor color intensity
+      stiffness = 0.8,                -- Default: 0.6 (higher = faster fade)
+      trailing_stiffness = 0.5,       -- Default: 0.3 (higher = shorter trail)
+      trailing_exponent = 0.1,        -- Default: 0.1 (lower = longer trail)
+      distance_stop_animating = 0.5,  -- Default: 0.1 (minimum movement to animate)
+      hide_target_hack = false,       -- Default: true (hide original cursor)
+    },
+  },
+
   -- Show match number and index for searching
   {
     "kevinhwang91/nvim-hlslens",
@@ -299,8 +331,34 @@ local plugin_specs = {
     },
   },
 
-  -- Multiple cursor plugin like Sublime Text?
-  -- 'mg979/vim-visual-multi'
+  -- Multiple cursor plugin like Sublime Text
+  {
+    "mg979/vim-visual-multi",
+    branch = "master",
+    event = "VeryLazy",
+    init = function()
+      -- Basic settings for vim-visual-multi
+      vim.g.VM_default_mappings = 1
+      vim.g.VM_mouse_mappings = 1
+      vim.g.VM_theme = "iceblue"
+      
+      -- Custom key mappings (optional, uses default mappings if not set)
+      vim.g.VM_maps = {
+        ["Find Under"] = "<C-n>",           -- Start multi-cursor, select word under cursor
+        ["Find Subword Under"] = "<C-n>",   -- Same as above for subwords
+        ["Add Cursor Down"] = "<C-Down>",   -- Add cursor down
+        ["Add Cursor Up"] = "<C-Up>",       -- Add cursor up
+        ["Select All"] = "<C-S-l>",         -- Select all occurrences
+        ["Start Regex Search"] = "\\/",     -- Start regex search for multi-cursor
+        ["Add Cursor At Pos"] = "\\\\",     -- Add cursor at position
+        ["Visual Regex"] = "\\/",           -- Visual mode regex
+        ["Visual All"] = "\\A",             -- Visual mode select all
+        ["Visual Add"] = "\\a",             -- Visual mode add cursor
+        ["Visual Find"] = "\\f",            -- Visual mode find
+        ["Visual Cursors"] = "\\c",         -- Visual mode create cursors
+      }
+    end,
+  },
 
   -- Show undo history visually
   { "simnalamburt/vim-mundo", cmd = { "MundoToggle", "MundoShow" } },
