@@ -20,7 +20,7 @@ local new_capability = {
 }
 
 return {
-  cmd = { "delance-langserver", "--stdio" },
+  cmd = { "pyright-langserver", "--stdio" },
   settings = {
     pyright = {
       -- disable import sorting and use Ruff for this
@@ -36,6 +36,8 @@ return {
         -- Automatically detect workspace root and scan all Python files
         autoImportCompletions = true,
         indexing = true,                     -- Enable workspace indexing
+        -- Specify Python path explicitly
+        pythonPath = vim.fn.exepath("python3") or "/usr/bin/python3",
         -- we can this setting below to redefine some diagnostics
         diagnosticSeverityOverrides = {
           deprecateTypingAliases = false,
