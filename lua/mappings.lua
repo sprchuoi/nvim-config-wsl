@@ -235,11 +235,22 @@ end, {
   desc = "close floating win",
 })
 
--- Quick search with Telescope
+-- Quick search with Telescope (VS Code-like keybindings)
+-- Ctrl+P: Quick file finder (like VS Code)
 keymap.set("n", "<C-p>", "<cmd>Telescope find_files<cr>", { desc = "quick find files" })
-keymap.set("n", "<C-f>", "<cmd>Telescope live_grep<cr>", { desc = "quick search in folder" })
+
+-- Ctrl+Shift+F: Search in folder (like VS Code)
+keymap.set("n", "<C-S-f>", "<cmd>Telescope live_grep<cr>", { desc = "search in workspace" })
+
+-- Ctrl+F: Search in current file (like VS Code)
+keymap.set("n", "<C-f>", "/", { desc = "search in current file" })
+
+-- Additional search shortcuts
+keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "live grep in workspace" })
 keymap.set("n", "<leader>fw", "<cmd>Telescope grep_string<cr>", { desc = "search word under cursor" })
-keymap.set("n", "<leader>fs", "<cmd>Telescope current_buffer_fuzzy_find<cr>", { desc = "search in current buffer" })
+keymap.set("n", "<leader>fs", "<cmd>Telescope current_buffer_fuzzy_find<cr>", { desc = "fuzzy search in current buffer" })
+keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "search open buffers" })
+keymap.set("n", "<leader>fr", "<cmd>Telescope oldfiles<cr>", { desc = "search recent files" })
 
 -- Quick replace (like Ctrl+Shift+H in VSCode)
 keymap.set("n", "<C-S-h>", ":%s///g<Left><Left><Left>", { desc = "replace in file" })
