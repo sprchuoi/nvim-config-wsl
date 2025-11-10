@@ -54,8 +54,9 @@ return {
         },
         jedi_definition = {
           enabled = true,
-          follow_imports = true,
-          follow_builtin_imports = true,
+          follow_imports = true,            -- Follow imports to their source
+          follow_builtin_imports = true,    -- Navigate to Python stdlib definitions
+          follow_builtin_definitions = true, -- Navigate to built-in type definitions
         },
         jedi_hover = {
           enabled = true,
@@ -69,6 +70,7 @@ return {
         jedi_symbols = {
           enabled = true,
           all_scopes = true,
+          include_import_symbols = true,    -- Include symbols from imports
         },
       },
     },

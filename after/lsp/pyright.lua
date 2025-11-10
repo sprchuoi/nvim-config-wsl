@@ -32,12 +32,20 @@ return {
         autoSearchPaths = true,
         diagnosticMode = "workspace",        -- Scan entire workspace, not just open files
         typeCheckingMode = "standard",
-        useLibraryCodeForTypes = true,
         -- Automatically detect workspace root and scan all Python files
         autoImportCompletions = true,
         indexing = true,                     -- Enable workspace indexing
         -- Specify Python path explicitly
         pythonPath = vim.fn.exepath("python3") or "/usr/bin/python3",
+        
+        -- Enhanced settings for better go-to-definition
+        stubPath = vim.fn.stdpath("data") .. "/lazy/python-type-stubs",
+        extraPaths = {},                     -- Add any additional paths here
+        
+        -- Enable analysis of library code for better navigation
+        followImports = true,                -- Follow imports to their definitions
+        useLibraryCodeForTypes = true,       -- Use library source code for types and navigation
+        
         -- we can this setting below to redefine some diagnostics
         diagnosticSeverityOverrides = {
           deprecateTypingAliases = false,
