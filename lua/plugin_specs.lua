@@ -109,7 +109,7 @@ local plugin_specs = {
 
   -- Smooth cursor animations with trailing effect
   {
-    "sphalerite/smear-cursor.nvim",
+    "sphamba/smear-cursor.nvim",
     event = "VeryLazy",
     opts = {
       -- Cursor color. Defaults to Cursor GUI color if not set
