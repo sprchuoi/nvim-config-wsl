@@ -9,6 +9,10 @@ vim.g.is_mac = utils.has("macunix") and true or false
 
 vim.g.logging_level = vim.log.levels.INFO
 
+-- Enable Nerd Font support (set to false if you don't have a Nerd Font installed)
+-- You can detect this automatically by checking if certain Unicode characters render correctly
+vim.g.have_nerd_font = true
+
 ------------------------------------------------------------------------
 --                         builtin variables                          --
 ------------------------------------------------------------------------

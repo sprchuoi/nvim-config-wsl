@@ -115,3 +115,57 @@ vim.api.nvim_create_user_command("LspRestart", function()
 end, {
   desc = "Restart all LSP clients for current buffer",
 })
+
+-- Test Nerd Font icons
+vim.api.nvim_create_user_command("TestNerdFont", function()
+  local test_icons = {
+    { icon = "", name = "Folder" },
+    { icon = "", name = "File" },
+    { icon = "", name = "Git Branch" },
+    { icon = "", name = "Python" },
+    { icon = "", name = "JavaScript" },
+    { icon = "", name = "Lua" },
+    { icon = "", name = "Modified" },
+    { icon = "", name = "Check" },
+    { icon = "", name = "Error" },
+    { icon = "", name = "Warning" },
+  }
+  
+  local lines = { "Nerd Font Icon Test:", "" }
+  for _, item in ipairs(test_icons) do
+    table.insert(lines, string.format("%s  %s", item.icon, item.name))
+  end
+  
+  table.insert(lines, "")
+  table.insert(lines, "If you see boxes or question marks instead of icons,")
+  table.insert(lines, "you need to install a Nerd Font. Run the script:")
+  table.insert(lines, "  bash docs/install_nerd_font.sh")
+  table.insert(lines, "")
+  table.insert(lines, "After installation, configure your terminal to use the Nerd Font.")
+  
+  -- Create a scratch buffer to display the test
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+  
+  -- Open in a split
+  vim.cmd("split")
+  vim.api.nvim_win_set_buf(0, buf)
+  vim.api.nvim_buf_set_name(buf, "NerdFont Test")
+end, {
+  desc = "Test if Nerd Font icons are displaying correctly",
+})
+
+-- Toggle Nerd Font support
+vim.api.nvim_create_user_command("ToggleNerdFont", function()
+  vim.g.have_nerd_font = not vim.g.have_nerd_font
+  local status = vim.g.have_nerd_font and "enabled" or "disabled"
+  vim.notify(
+    string.format("Nerd Font support %s. Restart nvim-tree to see changes.", status),
+    vim.log.levels.INFO,
+    { title = "Font Config" }
+  )
+end, {
+  desc = "Toggle Nerd Font support on/off",
+})
