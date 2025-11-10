@@ -128,8 +128,10 @@ vim.lsp.config("*", {
 
 -- A mapping from lsp server name to the executable name
 local enabled_lsp_servers = {
-  pyright = "pyright-langserver",
-  ruff = "ruff",
+  -- Python LSP servers (you can enable both or choose one)
+  pyright = "pyright-langserver",  -- Type checking, go-to-definition
+  -- pylsp = "pylsp",              -- Alternative: more plugins, mypy integration (uncomment to use)
+  ruff = "ruff",                   -- Linting and formatting
   lua_ls = "lua-language-server",
   -- ltex = "ltex-ls",
   clangd = "clangd",
