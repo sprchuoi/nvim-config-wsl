@@ -1,80 +1,6 @@
 local keymap = vim.keymap
 local nvim_tree = require("nvim-tree")
 
--- Check if using a Nerd Font (basic heuristic)
-local has_nerd_font = vim.g.have_nerd_font or true
-
--- Icons configuration based on font availability
-local icons_config = {
-  webdev_colors = true,
-  git_placement = "before",
-  modified_placement = "after",
-  padding = " ",
-  symlink_arrow = " ➛ ",
-  show = {
-    file = true,
-    folder = true,
-    folder_arrow = true,
-    git = true,
-    modified = true,
-  },
-}
-
-if has_nerd_font then
-  icons_config.glyphs = {
-    default = "",
-    symlink = "",
-    bookmark = "󰆤",
-    modified = "●",
-    folder = {
-      arrow_closed = "",
-      arrow_open = "",
-      default = "",
-      open = "",
-      empty = "",
-      empty_open = "",
-      symlink = "",
-      symlink_open = "",
-    },
-    git = {
-      unstaged = "✗",
-      staged = "✓",
-      unmerged = "",
-      renamed = "➜",
-      untracked = "★",
-      deleted = "",
-      ignored = "◌",
-    },
-  }
-else
-  -- Fallback to simple ASCII icons
-  icons_config.glyphs = {
-    default = "",
-    symlink = "",
-    bookmark = "B",
-    modified = "*",
-    folder = {
-      arrow_closed = ">",
-      arrow_open = "v",
-      default = "[D]",
-      open = "[O]",
-      empty = "[E]",
-      empty_open = "[E]",
-      symlink = "[L]",
-      symlink_open = "[L]",
-    },
-    git = {
-      unstaged = "M",
-      staged = "A",
-      unmerged = "U",
-      renamed = "R",
-      untracked = "?",
-      deleted = "D",
-      ignored = "!",
-    },
-  }
-end
-
 nvim_tree.setup {
   auto_reload_on_write = true,
   disable_netrw = false,
@@ -101,7 +27,45 @@ nvim_tree.setup {
         none = "  ",
       },
     },
-    icons = icons_config,
+    icons = {
+      webdev_colors = true,
+      git_placement = "before",
+      modified_placement = "after",
+      padding = " ",
+      symlink_arrow = " 󰁔 ",
+      show = {
+        file = true,
+        folder = true,
+        folder_arrow = true,
+        git = true,
+        modified = true,
+      },
+      glyphs = {
+        default = "󰈙",
+        symlink = "󰌷",
+        bookmark = "󰆤",
+        modified = "●",
+        folder = {
+          arrow_closed = "",
+          arrow_open = "",
+          default = "󰉋",
+          open = "󰝰",
+          empty = "󰉖",
+          empty_open = "󰷏",
+          symlink = "󰉒",
+          symlink_open = "󰉒",
+        },
+        git = {
+          unstaged = "󰄱",
+          staged = "󰱒",
+          unmerged = "",
+          renamed = "󰁕",
+          untracked = "󰎔",
+          deleted = "󰍵",
+          ignored = "󰿠",
+        },
+      },
+    },
   },
   hijack_directories = {
     enable = true,

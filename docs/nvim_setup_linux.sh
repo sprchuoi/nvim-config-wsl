@@ -310,4 +310,97 @@ git clone --depth=1 https://github.com/sprchuoi/nvim-config-wsl.git "$NVIM_CONFI
 echo "Installing nvim plugins, please wait"
 "$NVIM_DIR/bin/nvim" -c "autocmd User LazyInstall quitall"  -c "lua require('lazy').install()"
 
+#######################################################################
+#                    Install Nerd Font for Icons                      #
+#######################################################################
+echo "Installing Nerd Font for proper icon display..."
+
+# Check if unzip is available
+if ! command -v unzip &> /dev/null; then
+    echo "unzip not found. Installing..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update && sudo apt-get install -y unzip
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y unzip
+    elif command -v dnf &> /dev/null; then
+        sudo dnf install -y unzip
+    else
+        echo "Cannot install unzip automatically. Please install it manually."
+    fi
+fi
+
+FONT_NAME="JetBrainsMono"
+FONT_VERSION="v3.1.1"
+DOWNLOAD_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/${FONT_VERSION}/${FONT_NAME}.zip"
+FONTS_DIR="$HOME/.local/share/fonts"
+TEMP_DIR="/tmp/nerdfonts-install"
+FONT_FILE="${TEMP_DIR}/${FONT_NAME}.zip"
+EXTRACT_DIR="${TEMP_DIR}/${FONT_NAME}"
+
+mkdir -p "$FONTS_DIR" "$TEMP_DIR" "$EXTRACT_DIR"
+
+echo "Downloading ${FONT_NAME} Nerd Font..."
+if command -v wget &> /dev/null; then
+    wget -q --show-progress -O "$FONT_FILE" "$DOWNLOAD_URL" || {
+        echo "Download failed"
+        rm -rf "$TEMP_DIR"
+        echo "Skipping font installation. You can install manually later."
+        echo "Finished installing Nvim and its dependencies!"
+        exit 0
+    }
+elif command -v curl &> /dev/null; then
+    curl -L --progress-bar -o "$FONT_FILE" "$DOWNLOAD_URL" || {
+        echo "Download failed"
+        rm -rf "$TEMP_DIR"
+        echo "Skipping font installation. You can install manually later."
+        echo "Finished installing Nvim and its dependencies!"
+        exit 0
+    }
+else
+    echo "Neither wget nor curl found. Cannot download font."
+    echo "Skipping font installation. You can install manually later."
+    echo "Finished installing Nvim and its dependencies!"
+    exit 0
+fi
+
+if [[ -f "$FONT_FILE" ]]; then
+    echo "Extracting and installing fonts..."
+    unzip -q -o "$FONT_FILE" -d "$EXTRACT_DIR"
+    
+    # Copy only TTF and OTF files, excluding Windows Compatible versions
+    FONT_COUNT=0
+    while IFS= read -r font_file; do
+        if cp "$font_file" "$FONTS_DIR/" 2>/dev/null; then
+            ((FONT_COUNT++))
+        fi
+    done < <(find "$EXTRACT_DIR" -type f \( -iname "*.ttf" -o -iname "*.otf" \) ! -iname "*Windows Compatible*")
+    
+    echo "Installed $FONT_COUNT font files"
+    
+    # Update font cache
+    if command -v fc-cache &> /dev/null; then
+        echo "Updating font cache..."
+        fc-cache -fv "$FONTS_DIR" >/dev/null 2>&1
+        echo "Font cache updated"
+    fi
+    
+    rm -rf "$TEMP_DIR"
+    echo "${FONT_NAME} Nerd Font installed successfully!"
+    echo ""
+    echo "=========================================="
+    echo "IMPORTANT: Configure your terminal font!"
+    echo "=========================================="
+    echo "Set your terminal font to one of these:"
+    echo "  - JetBrainsMono Nerd Font"
+    echo "  - JetBrainsMono NF"
+    echo "  - JetBrainsMonoNL Nerd Font"
+    echo ""
+    echo "Verify installation with:"
+    echo "  fc-list | grep -i JetBrainsMono"
+    echo ""
+else
+    echo "Font download failed. You may need to install Nerd Font manually."
+    echo "Run: bash docs/install_nerd_font.sh"
+fi
+
 echo "Finished installing Nvim and its dependencies!"
