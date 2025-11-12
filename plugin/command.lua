@@ -115,3 +115,115 @@ vim.api.nvim_create_user_command("LspRestart", function()
 end, {
   desc = "Restart all LSP clients for current buffer",
 })
+
+-- Test Nerd Font icons
+vim.api.nvim_create_user_command("TestNerdFont", function()
+  local test_icons = {
+    { icon = "", name = "Folder" },
+    { icon = "", name = "File" },
+    { icon = "", name = "Git Branch" },
+    { icon = "", name = "Python" },
+    { icon = "", name = "JavaScript" },
+    { icon = "", name = "Lua" },
+    { icon = "", name = "Modified" },
+    { icon = "", name = "Check" },
+    { icon = "", name = "Error" },
+    { icon = "", name = "Warning" },
+  }
+  
+  local lines = { "Nerd Font Icon Test:", "" }
+  for _, item in ipairs(test_icons) do
+    table.insert(lines, string.format("%s  %s", item.icon, item.name))
+  end
+  
+  table.insert(lines, "")
+  table.insert(lines, "If you see boxes or question marks instead of icons,")
+  table.insert(lines, "you need to install a Nerd Font. Run the script:")
+  table.insert(lines, "  bash docs/install_nerd_font.sh")
+  table.insert(lines, "")
+  table.insert(lines, "After installation, configure your terminal to use the Nerd Font.")
+  
+  -- Create a scratch buffer to display the test
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+  
+  -- Open in a split
+  vim.cmd("split")
+  vim.api.nvim_win_set_buf(0, buf)
+  vim.api.nvim_buf_set_name(buf, "NerdFont Test")
+end, {
+  desc = "Test if Nerd Font icons are displaying correctly",
+})
+
+-- Toggle Nerd Font support
+vim.api.nvim_create_user_command("ToggleNerdFont", function()
+  vim.g.have_nerd_font = not vim.g.have_nerd_font
+  local status = vim.g.have_nerd_font and "enabled" or "disabled"
+  vim.notify(
+    string.format("Nerd Font support %s. Restart nvim-tree to see changes.", status),
+    vim.log.levels.INFO,
+    { title = "Font Config" }
+  )
+end, {
+  desc = "Toggle Nerd Font support on/off",
+})
+
+-- Python LSP debugging commands
+vim.api.nvim_create_user_command("PythonLspInfo", function()
+  -- Show Python LSP status and configuration
+  local clients = vim.lsp.get_clients({ bufnr = 0, name = "pyright" })
+  local pylsp_clients = vim.lsp.get_clients({ bufnr = 0, name = "pylsp" })
+  
+  local info = { "Python LSP Information:", "" }
+  
+  -- Pyright info
+  if #clients > 0 then
+    local client = clients[1]
+    table.insert(info, "✅ Pyright is attached")
+    table.insert(info, string.format("   Root: %s", client.root_dir or "N/A"))
+    table.insert(info, string.format("   Workspace folders: %s", vim.inspect(client.workspace_folders or {})))
+  else
+    table.insert(info, "❌ Pyright is not attached")
+  end
+  
+  -- Python LSP info
+  if #pylsp_clients > 0 then
+    local client = pylsp_clients[1]
+    table.insert(info, "✅ Python LSP (pylsp) is attached")
+    table.insert(info, string.format("   Root: %s", client.root_dir or "N/A"))
+  else
+    table.insert(info, "❌ Python LSP (pylsp) is not attached")
+  end
+  
+  table.insert(info, "")
+  table.insert(info, "Python executable: " .. (vim.fn.exepath("python3") or "Not found"))
+  table.insert(info, "Pyright executable: " .. (vim.fn.exepath("pyright-langserver") or "Not found"))
+  table.insert(info, "Pylsp executable: " .. (vim.fn.exepath("pylsp") or "Not found"))
+  
+  vim.notify(table.concat(info, "\n"), vim.log.levels.INFO, { title = "Python LSP" })
+end, {
+  desc = "Show Python LSP information and status",
+})
+
+vim.api.nvim_create_user_command("TestGoToDefinition", function()
+  local info = {
+    "To test go-to-definition:",
+    "",
+    "1. Open /tmp/python_test/test_project.py",
+    "2. Put cursor on 'my_function' in line 11",
+    "3. Press 'gd' to go to definition",
+    "4. Should jump to line 5",
+    "",
+    "Also test:",
+    "- Put cursor on 'Path' and press 'gd' (should go to pathlib)",
+    "- Put cursor on 'os' and press 'gd' (should go to os module)",
+    "",
+    "If it doesn't work, run :PythonLspInfo"
+  }
+  
+  vim.notify(table.concat(info, "\n"), vim.log.levels.INFO, { title = "Go-to-Definition Test" })
+end, {
+  desc = "Show instructions for testing go-to-definition",
+})

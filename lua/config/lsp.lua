@@ -131,10 +131,9 @@ vim.lsp.config("*", {
 
 -- A mapping from lsp server name to the executable name
 local enabled_lsp_servers = {
-  -- Python LSP servers (using both for best go-to-definition support)
-  pyright = "pyright-langserver",  -- Type checking, go-to-definition
-  pylsp = "pylsp",                 -- Better library navigation and completions
-  ruff = "ruff",                   -- Linting and formatting
+  pyright = "pyright-langserver",  -- Primary Python type checker
+  pylsp = "pylsp",                 -- Better library navigation and refactoring
+  ruff = "ruff",
   lua_ls = "lua-language-server",
   -- ltex = "ltex-ls",
   clangd = "clangd",

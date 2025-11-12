@@ -151,7 +151,7 @@ if $PIP_CMD install --user --upgrade pynvim 2>/dev/null; then
     print_success "pynvim installed/updated"
 else
     print_warning "Installing pynvim with --break-system-packages flag..."
-    $PIP_CMD install --break-system-packages --upgrade Ffi
+    $PIP_CMD install --break-system-packages --upgrade pynvim
     print_success "pynvim installed/updated"
 fi
 
