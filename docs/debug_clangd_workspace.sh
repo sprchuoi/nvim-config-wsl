@@ -52,6 +52,46 @@ for marker in "CMakeLists.txt" "Makefile" "makefile" "meson.build" "xmake.lua" "
 done
 echo ""
 
+echo "CMake build directories and cache:"
+CMAKE_BUILD_FOUND=false
+for dir in "build" "Build" "_build" "cmake-build-debug" "cmake-build-release"; do
+    if [ -d "$dir" ]; then
+        echo "📁 $dir/ directory exists"
+        if [ -f "$dir/CMakeCache.txt" ]; then
+            echo "   ✅ CMakeCache.txt found"
+            CMAKE_BUILD_FOUND=true
+            
+            # Extract some useful info from cache
+            if [ -f "$dir/CMakeCache.txt" ]; then
+                BUILD_TYPE=$(grep "CMAKE_BUILD_TYPE:" "$dir/CMakeCache.txt" | cut -d= -f2 | head -n1)
+                SOURCE_DIR=$(grep "CMAKE_HOME_DIRECTORY:" "$dir/CMakeCache.txt" | cut -d= -f2 | head -n1)
+                CXX_COMPILER=$(grep "CMAKE_CXX_COMPILER:" "$dir/CMakeCache.txt" | cut -d= -f2 | head -n1)
+                
+                [ -n "$BUILD_TYPE" ] && echo "   └─ Build Type: $BUILD_TYPE"
+                [ -n "$SOURCE_DIR" ] && echo "   └─ Source Dir: $SOURCE_DIR"
+                [ -n "$CXX_COMPILER" ] && echo "   └─ CXX Compiler: $CXX_COMPILER"
+            fi
+        else
+            echo "   ❌ No CMakeCache.txt"
+        fi
+        
+        if [ -f "$dir/compile_commands.json" ]; then
+            ENTRIES=$(jq '. | length' "$dir/compile_commands.json" 2>/dev/null || echo "Invalid JSON")
+            echo "   ✅ compile_commands.json ($ENTRIES entries)"
+        else
+            echo "   ❌ No compile_commands.json"
+        fi
+    else
+        echo "❌ $dir/ - missing"
+    fi
+done
+
+if [ "$CMAKE_BUILD_FOUND" = false ] && [ -f "CMakeLists.txt" ]; then
+    echo "⚠️  CMakeLists.txt found but no build directories with CMakeCache.txt"
+    echo "   Run: mkdir build && cd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .."
+fi
+echo ""
+
 echo "Version control markers:"
 for marker in ".git" ".hg" ".svn"; do
     if [ -d "$marker" ]; then

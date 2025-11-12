@@ -91,17 +91,56 @@ EOF
 if [ -f "CMakeLists.txt" ]; then
     echo "CMake project detected"
     
-    # Create build directory if it doesn't exist
-    mkdir -p build
+    # Look for existing CMake build directories first
+    BUILD_DIR=""
+    for dir in "build" "Build" "_build" "cmake-build-debug" "cmake-build-release"; do
+        if [ -f "$dir/CMakeCache.txt" ]; then
+            echo "Found existing CMake build directory: $dir"
+            BUILD_DIR="$dir"
+            break
+        fi
+    done
+    
+    # If no existing build directory, create one
+    if [ -z "$BUILD_DIR" ]; then
+        BUILD_DIR="build"
+        echo "Creating new build directory: $BUILD_DIR"
+        mkdir -p "$BUILD_DIR"
+    fi
     
     # Generate compile_commands.json using CMake
-    cd build
-    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    cd "$BUILD_DIR"
+    
+    # Check if we need to reconfigure
+    if [ ! -f "CMakeCache.txt" ]; then
+        echo "Configuring CMake project..."
+        cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    else
+        echo "Using existing CMake configuration, regenerating compile commands..."
+        # Read build type from cache if available
+        BUILD_TYPE=$(grep "CMAKE_BUILD_TYPE:" CMakeCache.txt | cut -d= -f2 | head -n1)
+        if [ -n "$BUILD_TYPE" ]; then
+            echo "Detected build type: $BUILD_TYPE"
+            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE="$BUILD_TYPE" ..
+        else
+            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+        fi
+    fi
     
     if [ -f "compile_commands.json" ]; then
         # Copy to project root
         cp compile_commands.json ../
         echo "Generated compile_commands.json using CMake"
+        
+        # Show some stats
+        ENTRIES=$(jq '. | length' compile_commands.json 2>/dev/null || echo "N/A")
+        echo "Compilation entries: $ENTRIES"
+        
+        # Check if there are any source files from project (not just system)
+        if command -v jq >/dev/null 2>&1; then
+            PROJECT_FILES=$(jq -r '.[].file' compile_commands.json | grep -E "\\.cpp$|\\.c$|\\.cc$|\\.cxx$" | wc -l)
+            echo "Project source files: $PROJECT_FILES"
+        fi
     else
         echo "CMake failed to generate compile_commands.json, falling back to basic generation"
         cd ..

@@ -13,6 +13,10 @@ vim.g.logging_level = vim.log.levels.INFO
 -- You can detect this automatically by checking if certain Unicode characters render correctly
 vim.g.have_nerd_font = true
 
+-- clangd auto-setup: automatically generate compile_commands.json and .clangd files
+-- Set to false to disable automatic project setup
+vim.g.clangd_auto_setup = true
+
 ------------------------------------------------------------------------
 --                         builtin variables                          --
 ------------------------------------------------------------------------
