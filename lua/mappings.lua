@@ -145,6 +145,11 @@ keymap.set("n", "gB", '<cmd>call buf_utils#GoToBuffer(v:count, "backward")<cr>',
   desc = "go to buffer (backward)",
 })
 
+-- <A-Left> = Go back, <A-Right> = Go forward
+keymap.set("n", "<A-Left>", "<C-o>", { desc = "go back to previous position" })
+keymap.set("n", "<A-Right>", "<C-i>", { desc = "go forward to next position" })
+
+
 -- Switch windows
 keymap.set("n", "<left>", "<c-w>h")
 keymap.set("n", "<Right>", "<C-W>l")
@@ -195,6 +200,8 @@ keymap.set("c", "<C-A>", "<HOME>")
 
 -- Delete the character to the right of the cursor
 keymap.set("i", "<C-D>", "<DEL>")
+
+
 
 keymap.set("n", "<leader>cb", function()
   local cnt = 0
