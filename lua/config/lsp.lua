@@ -19,9 +19,8 @@ local on_attach = function(client, bufnr)
   map("n", "gd", function()
     vim.lsp.buf.definition({
       on_list = function(options)
-        local unique_defs = {}
-        local seen = {}
-        for _, loc in pairs(options.items) do
+        local unique_defs, seen = {}, {}
+        for _, loc in pairs(options.items or {}) do
           local key = loc.filename .. loc.lnum
           if not seen[key] then
             seen[key] = true
@@ -29,9 +28,7 @@ local on_attach = function(client, bufnr)
           end
         end
         options.items = unique_defs
-
         vim.fn.setloclist(0, {}, " ", options)
-
         if #options.items > 1 then
           vim.cmd.lopen()
         elseif #options.items == 1 then
@@ -91,11 +88,17 @@ for server_name, executable in pairs(enabled_lsp_servers) do
   if utils.executable(executable) then
     local ok, server_config = pcall(require, "lsp." .. server_name)
     local config = ok and type(server_config) == "table" and vim.deepcopy(server_config) or {}
+
+    config.name = server_name
     config.capabilities = config.capabilities or capabilities
     config.on_attach = config.on_attach or on_attach
     config.flags = config.flags or { debounce_text_changes = 500 }
 
-    require("lspconfig")[server_name].setup(config)
+    -- Create the LSP configuration
+    local final_config = vim.lsp.config(server_name, config)
+
+    --  Start or attach to the LSP server
+    vim.lsp.start(final_config)
   else
     vim.notify(
       string.format("Executable '%s' for server '%s' not found! Server will not be enabled", executable, server_name),
