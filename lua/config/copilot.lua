@@ -1,7 +1,7 @@
-require("copilot").setup {
+require("copilot").setup({
   panel = {
-    enabled = true,
-    auto_refresh = false,
+    enabled = true,         -- Keep the Copilot panel
+    auto_refresh = false,   -- Only refresh when requested
     keymap = {
       jump_prev = "[[",
       jump_next = "]]",
@@ -10,12 +10,12 @@ require("copilot").setup {
       open = "<M-CR>",
     },
     layout = {
-      position = "bottom", -- | top | left | right
+      position = "bottom",  -- Panel at bottom
       ratio = 0.4,
     },
   },
   suggestion = {
-    enabled = false, -- Disabled because we use copilot-cmp
+    enabled = false,       -- Disabled, use copilot-cmp instead
     auto_trigger = false,
   },
   filetypes = {
@@ -29,6 +29,6 @@ require("copilot").setup {
     cvs = false,
     ["."] = false,
   },
-  copilot_node_command = "node", -- Node.js version must be > 18.x
+  copilot_node_command = "node", -- Node.js >= 18 required
   server_opts_overrides = {},
-}
+})

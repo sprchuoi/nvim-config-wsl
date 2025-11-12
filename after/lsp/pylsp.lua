@@ -1,82 +1,79 @@
--- Python LSP Server (pylsp) configuration
--- This is an alternative to pyright with different features
--- Install: pip install python-lsp-server pylsp-mypy python-lsp-ruff
+-- Python LSP Server configuration (pylsp)
+-- Install with:
+--   pip install "python-lsp-server[all]" pylsp-mypy python-lsp-ruff rope
+
+-- pylsp focuses on completion/refactor via Jedi/Rope,
+-- while Ruff handles linting/formatting, and Mypy handles type checking.
 
 return {
   cmd = { "pylsp" },
   filetypes = { "python" },
+
   settings = {
     pylsp = {
+      configurationSources = { "pylsp_mypy" },
       plugins = {
-        -- Disable plugins that conflict with ruff
-        pycodestyle = {
-          enabled = false,  -- Use ruff instead
-        },
-        mccabe = {
-          enabled = false,
-        },
-        pyflakes = {
-          enabled = false,  -- Use ruff instead
-        },
-        flake8 = {
-          enabled = false,  -- Use ruff instead
-        },
-        autopep8 = {
-          enabled = false,  -- Use ruff format instead
-        },
-        yapf = {
-          enabled = false,
-        },
-        
-        -- Enable useful plugins
+        --  Disable overlapping or redundant tools (Ruff covers lint/format)
+        pycodestyle = { enabled = false },
+        pyflakes    = { enabled = false },
+        flake8      = { enabled = false },
+        mccabe      = { enabled = false },
+        autopep8    = { enabled = false },
+        yapf        = { enabled = false },
+        pydocstyle  = { enabled = false },
+
+        --  Type checking (Mypy)
         pylsp_mypy = {
           enabled = true,
-          live_mode = true,
-          strict = false,
+          live_mode = true,   -- Type check as you type
+          strict = false,     -- Set to true for stricter analysis
+          dmypy = false,      -- Disable daemon mode for portability
+          report_progress = true,
         },
-        
-        -- Rope for refactoring
-        rope_completion = {
+
+        --  Ruff (if python-lsp-ruff is installed)
+        ruff = {
           enabled = true,
+          extendSelect = { "E", "F", "W", "I" }, -- Error, formatting, import sort, etc.
+          ignore = { "E501" },  -- Example: ignore line-length
+          format = { "text" },
         },
+
+        --  Rope: refactoring, imports, renaming
+        rope_completion = { enabled = true },
         rope_autoimport = {
           enabled = true,
           memory = true,
+          code_actions = true,
         },
-        
-        -- Jedi for completions
+
+        --  Jedi: completion, definitions, hover, references
         jedi_completion = {
           enabled = true,
+          fuzzy = false,
           include_params = true,
           include_class_objects = true,
           include_function_objects = true,
-          fuzzy = false,
         },
         jedi_definition = {
           enabled = true,
-          follow_imports = true,            -- Follow imports to their source
-          follow_builtin_imports = true,    -- Navigate to Python stdlib definitions
-          follow_builtin_definitions = true, -- Navigate to built-in type definitions
+          follow_imports = true,
+          follow_builtin_imports = true,
+          follow_builtin_definitions = true,
         },
-        jedi_hover = {
-          enabled = true,
-        },
-        jedi_references = {
-          enabled = true,
-        },
-        jedi_signature_help = {
-          enabled = true,
-        },
+        jedi_hover = { enabled = true },
+        jedi_references = { enabled = true },
+        jedi_signature_help = { enabled = true },
         jedi_symbols = {
           enabled = true,
           all_scopes = true,
-          include_import_symbols = true,    -- Include symbols from imports
+          include_import_symbols = true,
         },
       },
     },
   },
-  
-  -- Workspace root detection
+
+  --  Workspace root detection
   root_dir = require("lspconfig.util").root_pattern(
     "pyproject.toml",
     "setup.py",
