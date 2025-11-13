@@ -146,8 +146,8 @@ keymap.set("n", "gB", '<cmd>call buf_utils#GoToBuffer(v:count, "backward")<cr>',
 })
 
 -- <A-Left> = Go back, <A-Right> = Go forward
-keymap.set("n", "<A-Left>", "<C-o>", { desc = "go back to previous position" })
-keymap.set("n", "<A-Right>", "<C-i>", { desc = "go forward to next position" })
+keymap.set("n", "<A-b>", "<C-o>", { desc = "go back to previous position" })
+keymap.set("n", "<A-n>", "<C-i>", { desc = "go forward to next position" })
 
 
 -- Switch windows
