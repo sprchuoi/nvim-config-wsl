@@ -1,0 +1,62 @@
+# Clangd configuration file
+# Place this in your project root as .clangd
+
+# Compilation database
+CompileFlags:
+  # Apply these flags to all files if no compile_commands.json is found
+  Add: 
+    - -std=c++17
+    - -Wall
+    - -Wextra
+    - -Wno-unused-parameter
+    - -I.
+    - -I..
+    - -I./include
+    - -I../include
+    - -I/usr/include
+    - -I/usr/local/include
+  
+  # Remove problematic flags that might be in compile_commands.json
+  Remove:
+    - -W*
+    - -fcoroutines-ts  # if using older compilers
+
+# Index configuration
+Index:
+  # Build index in background
+  Background: Build
+  
+  # Skip indexing system headers (faster indexing, but can be set to true if needed)
+  StandardLibrary: false
+  
+  # Index all files in the workspace, not just opened ones
+  # This is crucial for workspace-wide symbol search
+  # Removed the exclude patterns to ensure full workspace scanning
+
+# Diagnostics configuration  
+Diagnostics:
+  # Enable clang-tidy
+  ClangTidy:
+    Add: 
+      - bugprone-*
+      - cert-*
+      - cppcoreguidelines-*
+      - modernize-*
+      - performance-*
+      - readability-*
+    Remove:
+      - modernize-use-trailing-return-type
+      - readability-magic-numbers
+    CheckOptions:
+      readability-identifier-naming.VariableCase: camelCase
+      readability-identifier-naming.FunctionCase: camelCase
+      readability-identifier-naming.ClassCase: PascalCase
+  
+  # Suppress noisy diagnostics
+  Suppress:
+    - pp_file_not_found
+    - drv_unknown_argument
+
+# Completion configuration
+Completion:
+  AllScopes: true
