@@ -1,6 +1,6 @@
 require("copilot").setup({
   panel = {
-    enabled = true,         -- Keep the Copilot panel
+    enabled = false,        -- Disabled, use copilot-cmp instead
     auto_refresh = false,   -- Only refresh when requested
     keymap = {
       jump_prev = "[[",
@@ -29,6 +29,6 @@ require("copilot").setup({
     cvs = false,
     ["."] = false,
   },
-  copilot_node_command = "node", -- Node.js >= 18 required
+  copilot_node_command = vim.fn.exepath("node") ~= "" and vim.fn.exepath("node") or "node", -- Node.js >= 18 required
   server_opts_overrides = {},
 })

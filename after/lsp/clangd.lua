@@ -1,3 +1,33 @@
+local function get_c_std()
+  return vim.g.clangd_c_std or "c11"
+end
+
+local function get_cpp_std()
+  return vim.g.clangd_cpp_std or "c++17"
+end
+
+local function get_fallback_flags()
+  return {
+    "-std=" .. get_cpp_std(),
+    "-Wall",
+    "-Wextra",
+    "-I.",
+    "-I..",
+    "-I./include",
+    "-I../include",
+    "-I./src",
+    "-I../src",
+    "-I./lib",
+    "-I../lib",
+    "-I./external",
+    "-I../external",
+    "-I./third_party",
+    "-I../third_party",
+    "-I/usr/include",
+    "-I/usr/local/include",
+  }
+end
+
 return {
   filetypes = { "c", "cpp", "cc", "h", "hpp" },
 
@@ -254,25 +284,7 @@ return {
         ["clang-diagnostic-*"] = true,
       },
       -- Fallback flags when no compile_commands.json exists
-      fallbackFlags = {
-        "-std=c++17",
-        "-Wall",
-        "-Wextra",
-        "-I.",
-        "-I..",
-        "-I./include",
-        "-I../include",
-        "-I./src",
-        "-I../src",
-        "-I./lib",
-        "-I../lib",
-        "-I./external",
-        "-I../external",
-        "-I./third_party",
-        "-I../third_party",
-        "-I/usr/include",
-        "-I/usr/local/include",
-      },
+      fallbackFlags = get_fallback_flags(),
       -- Index configuration for better workspace scanning
       index = {
         background = "Build",
@@ -347,7 +359,7 @@ return {
       
       -- Determine compiler and standard
       local compiler = "clang++"
-      local std = "-std=c++17"
+      local std = "-std=" .. get_cpp_std()
       
       -- Check if this is primarily a C project
       local c_files = 0
@@ -362,7 +374,7 @@ return {
       
       if c_files > cpp_files then
         compiler = "clang"
-        std = "-std=c11"
+        std = "-std=" .. get_c_std()
       end
       
       -- Create compile_commands.json
@@ -393,10 +405,9 @@ return {
     -- Also create a basic .clangd config if it doesn't exist
     local clangd_config = root_dir .. "/.clangd"
     if vim.fn.filereadable(clangd_config) == 0 then
-      local config_content = [[
+      local config_content = string.format([[ 
 CompileFlags:
   Add:
-    - -std=c++17
     - -Wall
     - -Wextra
     - -I.
@@ -427,7 +438,19 @@ Diagnostics:
 
 Completion:
   AllScopes: true
-]]
+
+---
+If:
+  PathMatch: .*\\.c
+CompileFlags:
+  Add: [-std=%s]
+
+---
+If:
+  PathMatch: .*\\.(cc|cpp|cxx|hpp|hxx)$
+CompileFlags:
+  Add: [-std=%s]
+]], get_c_std(), get_cpp_std())
       local config_file = io.open(clangd_config, "w")
       if config_file then
         config_file:write(config_content)
@@ -479,6 +502,58 @@ Completion:
         vim.notify("Refreshing clangd workspace index...", vim.log.levels.INFO)
       end
     end, { desc = "Refresh clangd workspace index" })
+
+    -- Jump between source/header file using clangd extension
+    vim.api.nvim_buf_create_user_command(bufnr, "ClangdSwitchSourceHeader", function()
+      if not client then return end
+      local params = { uri = vim.uri_from_bufnr(bufnr) }
+      local result = client.request_sync("textDocument/switchSourceHeader", params, 1000, bufnr)
+      local target = result and result.result
+      if target and target ~= "" then
+        vim.cmd("edit " .. vim.uri_to_fname(target))
+      else
+        vim.notify("No corresponding source/header file found", vim.log.levels.WARN)
+      end
+    end, { desc = "Switch between source and header file" })
+
+    vim.keymap.set("n", "<leader>ch", "<cmd>ClangdSwitchSourceHeader<CR>", {
+      buffer = bufnr,
+      silent = true,
+      desc = "Switch source/header",
+    })
+
+    -- Better symbol scanning commands
+    vim.api.nvim_buf_create_user_command(bufnr, "ClangdSymbols", function(opts)
+      vim.lsp.buf.workspace_symbol(opts.args)
+    end, { nargs = "*", desc = "Search workspace symbols (functions/variables/types)" })
+
+    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, {
+      buffer = bufnr,
+      silent = true,
+      desc = "Go to declaration",
+    })
+
+    -- Select C standard version quickly (ex: :ClangdSetCStd c99)
+    vim.api.nvim_buf_create_user_command(bufnr, "ClangdSetCStd", function(opts)
+      local std = (opts.args or ""):lower()
+      if not std:match("^c%d+") then
+        vim.notify("Invalid C standard. Use values like c89, c99, c11, c17, c23", vim.log.levels.ERROR)
+        return
+      end
+      vim.g.clangd_c_std = std
+      vim.notify("clangd C standard set to " .. std .. ". Restart clangd or reopen project to apply.", vim.log.levels.INFO)
+    end, { nargs = 1, complete = function() return { "c89", "c90", "c99", "c11", "c17", "c23" } end, desc = "Set C standard for clangd fallback" })
+
+    -- Select C++ standard version quickly (ex: :ClangdSetCppStd c++20)
+    vim.api.nvim_buf_create_user_command(bufnr, "ClangdSetCppStd", function(opts)
+      local std = opts.args or ""
+      if not std:match("^c%+%+%d+") then
+        vim.notify("Invalid C++ standard. Use values like c++11, c++14, c++17, c++20, c++23", vim.log.levels.ERROR)
+        return
+      end
+      vim.g.clangd_cpp_std = std
+      vim.notify("clangd C++ standard set to " .. std .. ". Restart clangd or reopen project to apply.", vim.log.levels.INFO)
+    end, { nargs = 1, complete = function() return { "c++11", "c++14", "c++17", "c++20", "c++23" } end, desc = "Set C++ standard for clangd fallback" })
 
     -- Add command to show workspace info
     vim.api.nvim_buf_create_user_command(bufnr, "ClangdWorkspaceInfo", function()

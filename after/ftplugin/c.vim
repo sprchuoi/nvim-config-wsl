@@ -5,12 +5,26 @@ set formatoptions-=o
 set formatoptions-=r
 
 nnoremap <silent> <buffer> <F9> :call <SID>compile_run_c()<CR>
+command! -buffer -nargs=1 CStd call <SID>set_c_std(<f-args>)
+
+if !exists('g:c_build_std')
+  let g:c_build_std = 'c11'
+endif
+
+function! s:set_c_std(std) abort
+  if a:std =~# '^c\d\+$' || a:std =~# '^gnu\d\+$' || a:std =~# '^c89$' || a:std =~# '^c90$'
+    let g:c_build_std = a:std
+    echom 'C standard set to ' . g:c_build_std
+  else
+    echoerr 'Invalid C standard. Example: :CStd c99'
+  endif
+endfunction
 
 function! s:compile_run_c() abort
   let src_path = expand('%:p:~')
   let src_noext = expand('%:p:~:r')
   " The building flags
-  let _flag = '-Wall -Wextra -std=c11 -O2'
+  let _flag = '-Wall -Wextra -std=' . g:c_build_std . ' -O2'
 
   if executable('clang')
     let prog = 'clang'

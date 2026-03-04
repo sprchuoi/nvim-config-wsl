@@ -298,14 +298,22 @@ fi
 echo ""
 print_info "Checking PATH configuration..."
 
+# Choose the shell rc file based on the user's login shell
+SHELL_NAME="$(basename "${SHELL:-bash}")"
+if [[ "$SHELL_NAME" == "zsh" ]]; then
+    RC_FILE="$HOME/.zshrc"
+else
+    RC_FILE="$HOME/.bashrc"
+fi
+
 # Add ~/.local/bin to PATH if not already there
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-    print_warning "~/.local/bin is not in PATH. Adding to ~/.bashrc"
-    echo '' >> "$HOME/.bashrc"
-    echo '# Add local bin to PATH for language servers' >> "$HOME/.bashrc"
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+    print_warning "~/.local/bin is not in PATH. Adding to $RC_FILE"
+    echo '' >> "$RC_FILE"
+    echo '# Add local bin to PATH for language servers' >> "$RC_FILE"
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$RC_FILE"
     export PATH="$HOME/.local/bin:$PATH"
-    print_success "Added ~/.local/bin to PATH (restart shell or run: source ~/.bashrc)"
+    print_success "Added ~/.local/bin to PATH (restart shell or run: source $RC_FILE)"
 else
     print_success "~/.local/bin is already in PATH"
 fi
@@ -313,8 +321,8 @@ fi
 # Add ~/.npm-global/bin to PATH if not already there (for npm global packages)
 if [[ ":$PATH:" != *":$HOME/.npm-global/bin:"* ]]; then
     if [[ -d "$HOME/.npm-global/bin" ]]; then
-        print_warning "~/.npm-global/bin is not in PATH. Adding to ~/.bashrc"
-        echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.bashrc"
+        print_warning "~/.npm-global/bin is not in PATH. Adding to $RC_FILE"
+        echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$RC_FILE"
         export PATH="$HOME/.npm-global/bin:$PATH"
         print_success "Added ~/.npm-global/bin to PATH"
     fi
@@ -383,7 +391,7 @@ print_success "Setup complete!"
 echo "====================================="
 echo ""
 print_info "Next steps:"
-echo "  1. If PATH was updated, run: source ~/.bashrc"
+echo "  1. If PATH was updated, run: source $RC_FILE"
 echo "  2. Restart Neovim"
 echo "  3. Language servers should now be available"
 echo ""
